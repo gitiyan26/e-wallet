@@ -1,6 +1,6 @@
 // API route untuk operasi transaksi
 import { NextRequest, NextResponse } from 'next/server';
-import { getTransactions, addTransaction } from '@/lib/database';
+import { getTransactions, addTransaction, getTransactionsByUserAndDateRange } from '@/lib/database';
 import { TransactionFilter } from '@/types';
 
 // GET /api/transactions - Mendapatkan daftar transaksi
@@ -8,6 +8,26 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
+    // Check if this is a request for user-specific date range (for reports)
+    const userId = searchParams.get('user_id');
+    const startDate = searchParams.get('start_date');
+    const endDate = searchParams.get('end_date');
+    
+    if (userId && startDate && endDate) {
+      // Handle date range request for reports
+      const transactions = getTransactionsByUserAndDateRange(
+        userId,
+        new Date(startDate),
+        new Date(endDate)
+      );
+      
+      return NextResponse.json({
+        success: true,
+        transactions
+      });
+    }
+    
+    // Handle regular filter request
     const filter: TransactionFilter = {
       type: searchParams.get('type') as 'income' | 'expense' | 'all' || undefined,
       category: searchParams.get('category') || undefined,

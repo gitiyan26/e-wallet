@@ -17,6 +17,7 @@ export default function AddTransactionPage() {
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
   const [categories, setCategories] = useState<any[]>([])
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const router = useRouter()
   const { notification, showNotification, hideNotification } = useNotification()
 
@@ -55,6 +56,24 @@ export default function AddTransactionPage() {
   useEffect(() => {
     loadCategories()
   }, [type])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.category-dropdown')) {
+        setShowCategoryDropdown(false)
+      }
+    }
+
+    if (showCategoryDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCategoryDropdown])
 
   const loadCategories = () => {
     const cats = getCategoriesByType(type)
@@ -198,24 +217,52 @@ export default function AddTransactionPage() {
             </div>
 
             {/* Category */}
-            <div>
+            <div className="relative category-dropdown">
               <label htmlFor="category" className="block text-sm font-bold text-gray-700 mb-3">
                 Kategori
               </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                required
-                className="w-full px-6 py-4 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200 font-medium"
+              <button
+                type="button"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="w-full px-6 py-4 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200 font-medium text-left flex items-center justify-between"
               >
-                <option value="">Pilih kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.name}>
-                    {cat.icon} {cat.name}
-                  </option>
-                ))}
-              </select>
+                <span className={category ? 'text-gray-900' : 'text-gray-500'}>
+                  {category ? (
+                    categories.find(cat => cat.name === category) ? 
+                    `${categories.find(cat => cat.name === category)?.icon} ${category}` : 
+                    category
+                  ) : 'Pilih kategori'}
+                </span>
+                <svg 
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showCategoryDropdown ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showCategoryDropdown && (
+                <div className="absolute z-50 w-full mt-2 bg-white border border-primary-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  <div className="p-2">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setCategory(cat.name)
+                          setShowCategoryDropdown(false)
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-primary-50 rounded-lg transition-colors duration-150 flex items-center space-x-3"
+                      >
+                        <span className="text-lg">{cat.icon}</span>
+                        <span className="font-medium text-gray-900">{cat.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Description */}

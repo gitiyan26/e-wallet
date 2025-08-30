@@ -156,6 +156,15 @@ export const getTransactionSummary = (userId: string): TransactionSummary => {
   };
 };
 
+export const getTransactionsByUserAndDateRange = (userId: string, startDate: Date, endDate: Date): Transaction[] => {
+  const transactions = getTransactions().filter(t => t.user_id === userId);
+  
+  return transactions.filter(transaction => {
+    const transactionDate = new Date(transaction.date);
+    return transactionDate >= startDate && transactionDate <= endDate;
+  });
+};
+
 // Category operations
 export const getCategories = () => {
   // Check if we're in browser environment
