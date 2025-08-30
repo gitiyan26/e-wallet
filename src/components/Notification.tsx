@@ -32,13 +32,13 @@ export default function Notification({
   const getNotificationStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500 text-white';
+        return 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-elegant';
       case 'error':
-        return 'bg-red-500 text-white';
+        return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-elegant';
       case 'info':
-        return 'bg-blue-500 text-white';
+        return 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-elegant';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-elegant';
     }
   };
 
@@ -68,17 +68,17 @@ export default function Notification({
   };
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 animate-slide-down">
-      <div className={`${getNotificationStyles()} rounded-lg p-4 shadow-lg flex items-center justify-between`}>
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
+    <div className="fixed top-6 left-6 right-6 z-50 animate-slide-down">
+      <div className={`${getNotificationStyles()} rounded-2xl p-5 backdrop-blur-md flex items-center justify-between transform hover:scale-[1.02] transition-all duration-200`}>
+        <div className="flex items-center space-x-4">
+          <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
             {getIcon()}
           </div>
-          <p className="font-medium">{message}</p>
+          <p className="font-semibold text-lg">{message}</p>
         </div>
         <button
           onClick={onClose}
-          className="flex-shrink-0 ml-4 hover:opacity-75 transition-opacity"
+          className="flex-shrink-0 ml-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

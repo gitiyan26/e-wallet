@@ -72,60 +72,62 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Export Data Transaksi</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-gray-100 transform animate-scale-in">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Export Data Transaksi</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-2xl flex items-center justify-center transition-all duration-200 transform hover:scale-110 active:scale-95"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Format Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
                 Format File
               </label>
-              <div className="flex space-x-4">
-                <label className="flex items-center">
+              <div className="flex space-x-3">
+                <label className="flex-1 flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-md" 
+                       style={{borderColor: format === 'csv' ? '#3B82F6' : '#E5E7EB', backgroundColor: format === 'csv' ? '#EFF6FF' : 'transparent'}}>
                   <input
                     type="radio"
                     value="csv"
                     checked={format === 'csv'}
                     onChange={(e) => setFormat(e.target.value as 'csv')}
-                    className="mr-2"
+                    className="sr-only"
                   />
-                  CSV
+                  <span className={`font-semibold ${format === 'csv' ? 'text-primary-600' : 'text-gray-600'}`}>CSV</span>
                 </label>
-                <label className="flex items-center">
+                <label className="flex-1 flex items-center justify-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-200 hover:shadow-md"
+                       style={{borderColor: format === 'json' ? '#3B82F6' : '#E5E7EB', backgroundColor: format === 'json' ? '#EFF6FF' : 'transparent'}}>
                   <input
                     type="radio"
                     value="json"
                     checked={format === 'json'}
                     onChange={(e) => setFormat(e.target.value as 'json')}
-                    className="mr-2"
+                    className="sr-only"
                   />
-                  JSON
+                  <span className={`font-semibold ${format === 'json' ? 'text-primary-600' : 'text-gray-600'}`}>JSON</span>
                 </label>
               </div>
             </div>
 
             {/* Type Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
                 Tipe Transaksi
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as 'all' | 'income' | 'expense')}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 transition-all duration-200 bg-gray-50 hover:bg-white font-medium text-gray-700"
               >
                 <option value="all">Semua Transaksi</option>
                 <option value="income">Pemasukan</option>
@@ -135,7 +137,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
 
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
                 Kategori (Opsional)
               </label>
               <input
@@ -143,50 +145,57 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="Masukkan kategori"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 transition-all duration-200 bg-gray-50 hover:bg-white font-medium text-gray-700 placeholder-gray-400"
               />
             </div>
 
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-800 mb-3">
                   Tanggal Mulai
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 transition-all duration-200 bg-gray-50 hover:bg-white font-medium text-gray-700"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-800 mb-3">
                   Tanggal Akhir
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-400 transition-all duration-200 bg-gray-50 hover:bg-white font-medium text-gray-700"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex space-x-3 mt-6">
+          <div className="flex space-x-4 mt-8">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex-1 px-6 py-4 text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all duration-200 font-semibold transform hover:scale-[1.02] active:scale-[0.98]"
             >
               Batal
             </button>
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl hover:from-primary-600 hover:to-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-lg transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
             >
-              {exporting ? 'Mengexport...' : 'Export'}
+              {exporting ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Mengexport...</span>
+                </div>
+              ) : (
+                'Export'
+              )}
             </button>
           </div>
         </div>

@@ -102,103 +102,125 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-200 border-t-primary-600 mx-auto mb-6"></div>
+          <p className="text-gray-700 font-medium">Memuat dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Selamat datang, {user?.email}</p>
+      <div className="bg-white/95 backdrop-blur-md shadow-elegant">
+        <div className="px-6 py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Selamat datang, {user?.email?.split('@')[0]}</p>
         </div>
       </div>
 
       {/* Balance Card */}
-      <div className="p-4">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
-          <h2 className="text-lg font-medium mb-2">Saldo Total</h2>
-          {loadingSummary ? (
-            <div className="animate-pulse">
-              <div className="h-8 bg-blue-500 rounded w-32 mb-2"></div>
-              <div className="h-4 bg-blue-500 rounded w-24"></div>
-            </div>
-          ) : (
-            <>
-              <p className="text-3xl font-bold">
-                {summary ? formatCurrency(summary.balance) : 'Rp 0'}
-              </p>
-              <div className="flex justify-between mt-4 text-sm">
-                <div>
-                  <p className="text-blue-100">Pemasukan</p>
-                  <p className="font-medium">
-                    {summary ? formatCurrency(summary.totalIncome) : 'Rp 0'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-blue-100">Pengeluaran</p>
-                  <p className="font-medium">
-                    {summary ? formatCurrency(summary.totalExpense) : 'Rp 0'}
-                  </p>
-                </div>
+      <div className="p-6">
+        <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+          <div className="relative z-10">
+            <h2 className="text-xl font-semibold mb-3 text-primary-100">Saldo Total</h2>
+            {loadingSummary ? (
+              <div className="animate-pulse">
+                <div className="h-10 bg-primary-500/50 rounded-lg w-40 mb-4"></div>
+                <div className="h-5 bg-primary-500/50 rounded w-32"></div>
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                <p className="text-4xl font-bold mb-6">
+                  {summary ? formatCurrency(summary.balance) : 'Rp 0'}
+                </p>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <p className="text-primary-100 text-sm mb-1">Pemasukan</p>
+                    <p className="font-bold text-lg">
+                      {summary ? formatCurrency(summary.totalIncome) : 'Rp 0'}
+                    </p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <p className="text-primary-100 text-sm mb-1">Pengeluaran</p>
+                    <p className="font-bold text-lg">
+                      {summary ? formatCurrency(summary.totalExpense) : 'Rp 0'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Aksi Cepat</h3>
+      <div className="px-6 mb-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-6">Aksi Cepat</h3>
         <div className="grid grid-cols-2 gap-4">
-          <Link href="/add-transaction?type=income" className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow block">
-            <div className="text-green-600 text-2xl mb-2">💰</div>
-            <p className="font-medium text-gray-900">Tambah Pemasukan</p>
+          <Link href="/add-transaction?type=income" className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-elegant border border-gray-200/50 hover:shadow-xl transition-all duration-200 block group hover:scale-105 active:scale-95">
+            <div className="w-12 h-12 bg-success-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-success-200 transition-colors">
+              <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <p className="font-semibold text-gray-900 group-hover:text-success-700 transition-colors">Tambah Pemasukan</p>
+            <p className="text-sm text-gray-500 mt-1">Catat pendapatan</p>
           </Link>
-          <Link href="/add-transaction?type=expense" className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow block">
-            <div className="text-red-600 text-2xl mb-2">💸</div>
-            <p className="font-medium text-gray-900">Tambah Pengeluaran</p>
+          <Link href="/add-transaction?type=expense" className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-elegant border border-gray-200/50 hover:shadow-xl transition-all duration-200 block group hover:scale-105 active:scale-95">
+            <div className="w-12 h-12 bg-error-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-error-200 transition-colors">
+              <svg className="w-6 h-6 text-error-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </div>
+            <p className="font-semibold text-gray-900 group-hover:text-error-700 transition-colors">Tambah Pengeluaran</p>
+            <p className="text-sm text-gray-500 mt-1">Catat pengeluaran</p>
           </Link>
         </div>
       </div>
 
       {/* Recent Transactions */}
-      <div className="px-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Transaksi Terbaru</h3>
-          <Link href="/transactions" className="text-blue-600 text-sm font-medium">
+      <div className="px-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold text-gray-900">Transaksi Terbaru</h3>
+          <Link href="/transactions" className="text-primary-600 text-sm font-semibold hover:text-primary-700 transition-colors">
             Lihat Semua
           </Link>
         </div>
         
         {recentTransactions.length === 0 ? (
-          <div className="bg-white rounded-xl p-6 text-center">
-            <div className="text-gray-400 text-4xl mb-4">📊</div>
-            <p className="text-gray-600">Belum ada transaksi</p>
-            <p className="text-sm text-gray-500 mt-2">Mulai catat keuangan Anda sekarang</p>
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-8 text-center shadow-elegant">
+            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <p className="text-gray-700 font-semibold mb-2">Belum ada transaksi</p>
+            <p className="text-sm text-gray-500">Mulai catat keuangan Anda sekarang</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl overflow-hidden">
-            {recentTransactions.map((transaction) => (
-              <div key={transaction.id} className="p-4 border-b border-gray-100 last:border-b-0">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl overflow-hidden shadow-elegant">
+            {recentTransactions.map((transaction, index) => (
+              <div key={transaction.id} className={`p-5 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-100/50' : ''} hover:bg-gray-50/50 transition-colors`}>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{transaction.description}</p>
-                    <p className="text-sm text-gray-500">{transaction.category}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {formatDate(transaction.date)}
-                    </p>
+                    <p className="font-semibold text-gray-900 mb-1">{transaction.description}</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {transaction.category}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(transaction.date)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${
-                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                  <div className="text-right ml-4">
+                    <p className={`font-bold text-lg ${
+                      transaction.type === 'income' ? 'text-success-600' : 'text-error-600'
                     }`}>
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}

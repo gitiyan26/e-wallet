@@ -115,67 +115,75 @@ export default function AddTransactionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-200 border-t-primary-600 mx-auto mb-6"></div>
+          <p className="text-gray-700 font-medium">Memuat...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="px-4 py-6 flex items-center">
-          <Link href="/transactions" className="mr-4 text-gray-600 hover:text-gray-900">
-            ← Kembali
+      <div className="bg-white/95 backdrop-blur-md shadow-elegant">
+        <div className="px-6 py-8 flex items-center">
+          <Link href="/transactions" className="mr-6 p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all duration-200">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tambah Transaksi</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Tambah Transaksi</h1>
             <p className="text-gray-600">Catat pemasukan atau pengeluaran</p>
           </div>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="bg-white rounded-xl p-6">
+      <div className="p-6">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-elegant">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Transaction Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-bold text-gray-700 mb-4">
                 Jenis Transaksi
               </label>
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+              <div className="flex space-x-3 bg-white/80 backdrop-blur-sm p-3 rounded-2xl shadow-md">
                 <button
                   type="button"
                   onClick={() => setType('expense')}
-                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                  className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                     type === 'expense'
-                      ? 'bg-red-600 text-white'
-                      : 'text-gray-600 hover:text-red-600'
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg transform scale-105'
+                      : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
                   }`}
                 >
-                  💸 Pengeluaran
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                  <span>Pengeluaran</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setType('income')}
-                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                  className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                     type === 'income'
-                      ? 'bg-green-600 text-white'
-                      : 'text-gray-600 hover:text-green-600'
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-105'
+                      : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
                   }`}
                 >
-                  💰 Pemasukan
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Pemasukan</span>
                 </button>
               </div>
             </div>
 
             {/* Amount */}
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="amount" className="block text-sm font-bold text-gray-700 mb-3">
                 Jumlah (Rp)
               </label>
               <input
@@ -184,14 +192,14 @@ export default function AddTransactionPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-6 py-4 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200 font-medium text-lg"
                 placeholder="0"
               />
             </div>
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="category" className="block text-sm font-bold text-gray-700 mb-3">
                 Kategori
               </label>
               <select
@@ -199,7 +207,7 @@ export default function AddTransactionPage() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-6 py-4 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200 font-medium"
               >
                 <option value="">Pilih kategori</option>
                 {categories.map((cat) => (
@@ -212,7 +220,7 @@ export default function AddTransactionPage() {
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-3">
                 Deskripsi
               </label>
               <textarea
@@ -220,24 +228,34 @@ export default function AddTransactionPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                rows={4}
+                className="w-full px-6 py-4 border border-primary-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200 resize-none font-medium"
                 placeholder="Masukkan deskripsi transaksi"
               />
             </div>
 
-
-
             <button
               type="submit"
               disabled={submitting}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] ${
                 type === 'income'
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-red-600 hover:bg-red-700 text-white'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white'
               }`}
             >
-              {submitting ? 'Menyimpan...' : 'Simpan Transaksi'}
+              {submitting ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  <span>Menyimpan...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center space-x-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Simpan Transaksi</span>
+                </div>
+              )}
             </button>
           </form>
         </div>

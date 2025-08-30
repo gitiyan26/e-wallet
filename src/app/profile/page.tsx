@@ -42,41 +42,43 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 pb-20">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Profil</h1>
-          <p className="text-gray-600">Kelola akun Anda</p>
+      <div className="bg-white/95 backdrop-blur-md shadow-elegant">
+        <div className="px-6 py-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profil</h1>
+          <p className="text-gray-600">Kelola akun dan preferensi Anda</p>
         </div>
       </div>
 
       {/* Profile Info */}
-      <div className="p-4">
-        <div className="bg-white rounded-xl p-6 mb-6">
-          <div className="flex items-center mb-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-2xl">👤</span>
+      <div className="p-6">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-elegant">
+          <div className="flex items-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
-            <div className="ml-4">
-              <h2 className="text-xl font-semibold text-gray-900">Pengguna</h2>
-              <p className="text-gray-600">{user?.email}</p>
+            <div className="ml-5">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Pengguna</h2>
+              <p className="text-gray-600 text-sm">{user?.email}</p>
             </div>
           </div>
           
-          <div className="border-t pt-4">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Email</span>
-                <span className="font-medium">{user?.email}</span>
+          <div className="border-t border-gray-200/50 pt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Email</span>
+                <span className="font-semibold text-gray-900">{user?.email}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Status</span>
-                <span className="text-green-600 font-medium">Aktif</span>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Status</span>
+                <span className="text-success-600 font-semibold bg-success-50 px-3 py-1 rounded-full text-sm">Aktif</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Bergabung</span>
-                <span className="font-medium">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600 font-medium">Bergabung</span>
+                <span className="font-semibold text-gray-900">
                   {user?.created_at ? new Date(user.created_at).toLocaleDateString('id-ID') : 'Tidak diketahui'}
                 </span>
               </div>
@@ -85,44 +87,68 @@ export default function ProfilePage() {
         </div>
 
         {/* Menu Items */}
-        <div className="space-y-4">
-          <div className="bg-white rounded-xl">
-            <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors">
+        <div className="space-y-3">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
+            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
               <div className="flex items-center">
-                <span className="text-xl mr-3">🔔</span>
-                <span className="font-medium">Notifikasi</span>
+                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-12" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-gray-900">Notifikasi</span>
               </div>
-              <span className="text-gray-400">→</span>
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
 
-          <div className="bg-white rounded-xl">
-            <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
+            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
               <div className="flex items-center">
-                <span className="text-xl mr-3">🔒</span>
-                <span className="font-medium">Keamanan</span>
+                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-gray-900">Keamanan</span>
               </div>
-              <span className="text-gray-400">→</span>
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
 
-          <div className="bg-white rounded-xl">
-            <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
+            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
               <div className="flex items-center">
-                <span className="text-xl mr-3">❓</span>
-                <span className="font-medium">Bantuan</span>
+                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-gray-900">Bantuan</span>
               </div>
-              <span className="text-gray-400">→</span>
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
 
-          <div className="bg-white rounded-xl">
-            <button className="w-full p-4 flex items-center justify-between hover:bg-gray-50 rounded-xl transition-colors">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
+            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
               <div className="flex items-center">
-                <span className="text-xl mr-3">ℹ️</span>
-                <span className="font-medium">Tentang Aplikasi</span>
+                <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-gray-900">Tentang Aplikasi</span>
               </div>
-              <span className="text-gray-400">→</span>
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>
@@ -131,9 +157,11 @@ export default function ProfilePage() {
         <div className="mt-8">
           <button
             onClick={handleLogout}
-            className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-error-500 to-error-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-error-600 hover:to-error-700 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <span className="mr-2">🚪</span>
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
             Keluar dari Akun
           </button>
         </div>
