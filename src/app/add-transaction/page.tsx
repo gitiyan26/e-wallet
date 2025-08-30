@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getCategoriesByType } from '@/lib/database'
+import { TransactionFormData } from '@/types'
+import Notification, { useNotification } from '@/components/Notification'
 
 export default function AddTransactionPage() {
   const [user, setUser] = useState<any>(null)
@@ -13,9 +16,9 @@ export default function AddTransactionPage() {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [categories, setCategories] = useState<any[]>([])
   const router = useRouter()
+  const { notification, showNotification, hideNotification } = useNotification()
 
   const incomeCategories = ['Gaji', 'Bonus', 'Investasi', 'Freelance', 'Lainnya']
   const expenseCategories = ['Makanan', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Lainnya']
@@ -25,7 +28,13 @@ export default function AddTransactionPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/login')
+        // Check demo login
+        const demoLoggedIn = localStorage.getItem('demo-logged-in')
+        if (!demoLoggedIn) {
+          router.push('/login')
+          return
+        }
+        setUser({ id: 'demo-user', email: 'demo@example.com' })
       } else {
         setUser(user)
       }
@@ -33,37 +42,72 @@ export default function AddTransactionPage() {
     }
 
     getUser()
+    loadCategories()
+    
+    // Check URL params for transaction type
+    const urlParams = new URLSearchParams(window.location.search)
+    const typeParam = urlParams.get('type')
+    if (typeParam && ['income', 'expense'].includes(typeParam)) {
+      setType(typeParam as 'income' | 'expense')
+    }
   }, [])
+
+  useEffect(() => {
+    loadCategories()
+  }, [type])
+
+  const loadCategories = () => {
+    const cats = getCategoriesByType(type)
+    setCategories(cats)
+    // Reset category when type changes
+    if (category && !cats.find(c => c.name === category)) {
+      setCategory('')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    setError('')
-    setSuccess('')
 
     if (!amount || !description || !category) {
-      setError('Semua field harus diisi')
+      showNotification('Semua field harus diisi', 'error')
       setSubmitting(false)
       return
     }
 
     if (parseFloat(amount) <= 0) {
-      setError('Jumlah harus lebih dari 0')
+      showNotification('Jumlah harus lebih dari 0', 'error')
       setSubmitting(false)
       return
     }
 
     try {
-      // Simulasi penyimpanan transaksi
-      // Dalam implementasi nyata, ini akan menyimpan ke database Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type,
+          amount: parseFloat(amount),
+          category,
+          description,
+          user_id: user.id
+        }),
+      })
       
-      setSuccess('Transaksi berhasil ditambahkan!')
-      setTimeout(() => {
-        router.push('/transactions')
-      }, 1500)
+      const result = await response.json()
+      
+      if (result.success) {
+        showNotification('Transaksi berhasil ditambahkan!', 'success')
+        setTimeout(() => {
+          router.push('/transactions')
+        }, 1500)
+      } else {
+        showNotification(result.error || 'Terjadi kesalahan saat menyimpan transaksi', 'error')
+      }
     } catch (err) {
-      setError('Terjadi kesalahan saat menyimpan transaksi')
+      showNotification('Terjadi kesalahan saat menyimpan transaksi', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -158,9 +202,9 @@ export default function AddTransactionPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               >
                 <option value="">Pilih kategori</option>
-                {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.icon} {cat.name}
                   </option>
                 ))}
               </select>
@@ -182,17 +226,7 @@ export default function AddTransactionPage() {
               />
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
 
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-                {success}
-              </div>
-            )}
 
             <button
               type="submit"
@@ -208,6 +242,13 @@ export default function AddTransactionPage() {
           </form>
         </div>
       </div>
+      
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
     </div>
   )
 }
