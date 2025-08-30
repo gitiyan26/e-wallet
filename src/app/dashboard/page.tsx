@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/supabase';
 import BottomNavigation from '@/components/BottomNavigation';
 import { TransactionSummary, Transaction } from '@/types';
 import Notification, { useNotification } from '@/components/Notification';
+import MigrationModal, { useMigrationCheck } from '@/components/MigrationModal';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
+  const { shouldShowMigration, setShouldShowMigration, markMigrationComplete } = useMigrationCheck();
 
   useEffect(() => {
     checkUser();
@@ -30,7 +32,7 @@ export default function DashboardPage() {
 
   const checkUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
       if (!user) {
         // Check demo login
         const demoLoggedIn = localStorage.getItem('demo-logged-in');
@@ -53,7 +55,7 @@ export default function DashboardPage() {
   const loadSummary = async () => {
     setLoadingSummary(true);
     try {
-      const response = await fetch(`/api/summary?user_id=${user.id}`);
+      const response = await fetch('/api/summary');
       const result = await response.json();
       
       if (result.success) {
@@ -240,6 +242,17 @@ export default function DashboardPage() {
         type={notification.type}
         isVisible={notification.isVisible}
         onClose={hideNotification}
+      />
+      
+      <MigrationModal
+        isOpen={shouldShowMigration}
+        onClose={() => setShouldShowMigration(false)}
+        onMigrationComplete={() => {
+          markMigrationComplete()
+          loadSummary()
+          loadRecentTransactions()
+          showNotification('Data berhasil dimigrasi ke Supabase!', 'success')
+        }}
       />
     </div>
   )

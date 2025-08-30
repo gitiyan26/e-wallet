@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { signIn } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -18,18 +18,11 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { error } = await signIn(email, password)
 
       if (error) {
         setError(error.message)
       } else {
-        // Simpan status login untuk demo
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('demo-logged-in', 'true')
-        }
         router.push('/dashboard')
       }
     } catch (err) {
@@ -143,12 +136,7 @@ export default function LoginPage() {
             </p>
           </div>
           
-          {/* Demo credentials info */}
-          <div className="mt-6 p-4 bg-primary-50 border border-primary-200 rounded-2xl">
-            <p className="text-sm text-primary-700 text-center font-medium">
-              Demo: gunakan email dan password apa saja untuk masuk
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

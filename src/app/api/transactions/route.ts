@@ -8,15 +8,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Check if this is a request for user-specific date range (for reports)
-    const userId = searchParams.get('user_id');
+    // Check if this is a request for date range (for reports)
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
     
-    if (userId && startDate && endDate) {
+    if (startDate && endDate) {
       // Handle date range request for reports
-      const transactions = getTransactionsByUserAndDateRange(
-        userId,
+      const transactions = await getTransactionsByUserAndDateRange(
         new Date(startDate),
         new Date(endDate)
       );
@@ -44,7 +42,7 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    const transactions = getTransactions(filter);
+    const transactions = await getTransactions(filter);
     
     return NextResponse.json({
       success: true,
@@ -67,14 +65,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, amount, category, description, user_id } = body;
+    const { type, amount, category, description } = body;
     
     // Validasi input
-    if (!type || !amount || !category || !user_id) {
+    if (!type || !amount || !category) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Data tidak lengkap. Type, amount, category, dan user_id wajib diisi.'
+          error: 'Data tidak lengkap. Type, amount, dan category wajib diisi.'
         },
         { status: 400 }
       );
@@ -101,7 +99,6 @@ export async function POST(request: NextRequest) {
     }
     
     const transactionData = {
-      user_id,
       type,
       amount: parseFloat(amount),
       category,
@@ -109,7 +106,7 @@ export async function POST(request: NextRequest) {
       date: new Date().toISOString()
     };
     
-    const newTransaction = addTransaction(transactionData);
+    const newTransaction = await addTransaction(transactionData);
     
     return NextResponse.json(
       {

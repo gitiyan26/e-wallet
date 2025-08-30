@@ -5,11 +5,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const year = searchParams.get('year')
-    const userId = searchParams.get('user_id')
 
-    if (!year || !userId) {
+    if (!year) {
       return NextResponse.json(
-        { error: 'Year and user_id are required' },
+        { error: 'Year is required' },
         { status: 400 }
       )
     }
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
     const endDate = new Date(yearNum, 11, 31, 23, 59, 59) // December 31st
 
     // Get all transactions for the year
-    const transactions = await getTransactionsByUserAndDateRange(userId, startDate, endDate)
+    const transactions = await getTransactionsByUserAndDateRange(startDate, endDate)
 
     // Group transactions by month
     const monthlyData: { [key: string]: { income: number; expense: number } } = {}
