@@ -1,6 +1,7 @@
 // Database layer untuk mengelola data transaksi menggunakan Supabase
 import { Transaction, User, TransactionFilter, TransactionSummary } from '@/types';
 import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Types untuk Supabase
 interface SupabaseTransaction {
@@ -90,7 +91,7 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
       .single();
 
     if (categoriesError) {
-      console.warn('Category not found, using null:', categoriesError);
+      // Category not found, using null
     }
 
     // Insert transaction
@@ -123,24 +124,28 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
   }
 };
 
-export const getTransactions = async (filter?: TransactionFilter): Promise<Transaction[]> => {
+export const getTransactions = async (filter?: TransactionFilter, authenticatedUser?: any, userToken?: string): Promise<Transaction[]> => {
   try {
-    // Get current user with retry mechanism
-    let user = null;
-    let attempts = 0;
-    const maxAttempts = 3;
+    let user = authenticatedUser;
+    let supabaseClient = supabase;
     
-    while (!user && attempts < maxAttempts) {
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-      if (!userError && currentUser) {
-        user = currentUser;
-        break;
-      }
+    // If no authenticated user provided, try to get current user with retry mechanism
+    if (!user) {
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      attempts++;
-      if (attempts < maxAttempts) {
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      while (!user && attempts < maxAttempts) {
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && currentUser) {
+          user = currentUser;
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     }
     
@@ -149,8 +154,36 @@ export const getTransactions = async (filter?: TransactionFilter): Promise<Trans
       return [];
     }
 
+    // Create a new client with the user token for RLS
+    if (userToken) {
+      supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${userToken}`
+            }
+          }
+        }
+      );
+    } else {
+      // Fallback to session-based auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        supabaseClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        await supabaseClient.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        });
+      }
+    }
+
     // Build query
-    let query = supabase
+    let query = supabaseClient
       .from('transactions')
       .select('*')
       .eq('user_id', user.id);
@@ -184,7 +217,7 @@ export const getTransactions = async (filter?: TransactionFilter): Promise<Trans
     }
 
     // Get categories
-    const { data: categories } = await supabase
+    const { data: categories } = await supabaseClient
       .from('categories')
       .select('*');
 
@@ -302,33 +335,70 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
 };
 
 // Summary operations
-export const getTransactionSummary = async (): Promise<TransactionSummary> => {
+export const getTransactionSummary = async (authenticatedUser?: any, userToken?: string): Promise<TransactionSummary> => {
   try {
-    // Get current user with retry mechanism
-    let user = null;
-    let attempts = 0;
-    const maxAttempts = 3;
+    let user = authenticatedUser;
+    let supabaseClient = supabase;
     
-    while (!user && attempts < maxAttempts) {
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-      if (!userError && currentUser) {
-        user = currentUser;
-        break;
-      }
+    // If no authenticated user provided, try to get current user with retry mechanism
+    if (!user) {
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      attempts++;
-      if (attempts < maxAttempts) {
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      while (!user && attempts < maxAttempts) {
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && currentUser) {
+          user = currentUser;
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     }
     
     if (!user) {
-      // Return empty array if user not authenticated
-      return [];
+      // Return empty summary if user not authenticated
+      return {
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0,
+        transactionCount: 0
+      };
     }
 
-    const { data: transactions, error } = await supabase
+    // Create a new client with the user token for RLS
+    if (userToken) {
+      supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${userToken}`
+            }
+          }
+        }
+      );
+    } else {
+      // Fallback to session-based auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        supabaseClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        await supabaseClient.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        });
+      }
+    }
+
+    const { data: transactions, error } = await supabaseClient
       .from('transactions')
       .select('type, amount')
       .eq('user_id', user.id);
@@ -362,24 +432,27 @@ export const getTransactionSummary = async (): Promise<TransactionSummary> => {
   }
 };
 
-export const getTransactionsByUserAndDateRange = async (startDate: Date, endDate: Date): Promise<Transaction[]> => {
+export const getTransactionsByUserAndDateRange = async (startDate: Date, endDate: Date, authenticatedUser?: any): Promise<Transaction[]> => {
   try {
-    // Get current user with retry mechanism
-    let user = null;
-    let attempts = 0;
-    const maxAttempts = 3;
+    let user = authenticatedUser;
     
-    while (!user && attempts < maxAttempts) {
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-      if (!userError && currentUser) {
-        user = currentUser;
-        break;
-      }
+    // If no authenticated user provided, try to get current user with retry mechanism
+    if (!user) {
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      attempts++;
-      if (attempts < maxAttempts) {
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      while (!user && attempts < maxAttempts) {
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && currentUser) {
+          user = currentUser;
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     }
     

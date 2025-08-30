@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getTransactionsByUserAndDateRange } from '@/lib/database'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,12 +14,56 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Try to get user from authorization header first
+    const authHeader = request.headers.get('authorization');
+    let user = null;
+    let userToken = undefined;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      userToken = authHeader.substring(7);
+      try {
+        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(userToken);
+        if (!tokenError && tokenUser) {
+          user = tokenUser;
+        }
+      } catch (e) {
+        console.log('Token auth failed for monthly reports, trying session auth');
+      }
+    }
+
+    // Fallback to session-based auth with retry mechanism
+    if (!user) {
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (!user && attempts < maxAttempts) {
+        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+        if (!userError && currentUser) {
+          user = currentUser;
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const yearNum = parseInt(year)
     const startDate = new Date(yearNum, 0, 1) // January 1st
     const endDate = new Date(yearNum, 11, 31, 23, 59, 59) // December 31st
 
     // Get all transactions for the year
-    const transactions = await getTransactionsByUserAndDateRange(startDate, endDate)
+    const transactions = await getTransactionsByUserAndDateRange(startDate, endDate, user)
 
     // Group transactions by month
     const monthlyData: { [key: string]: { income: number; expense: number } } = {}
@@ -55,7 +100,10 @@ export async function GET(request: NextRequest) {
         return parseInt(a.month) - parseInt(b.month)
       })
 
-    return NextResponse.json({ reports })
+    return NextResponse.json({ 
+      success: true, 
+      data: reports 
+    })
   } catch (error) {
     console.error('Error fetching monthly reports:', error)
     return NextResponse.json(

@@ -95,20 +95,36 @@ export default function TransactionsPage() {
       
       params.append('limit', '50');
       
-      // Get session token for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          // Redirect to login if session expired
+          router.push('/login');
+          return;
+        }
+      }
       
       const response = await fetch(`/api/transactions?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers,
       });
       const result = await response.json();
-      
-      if (result.success) {
-        setTransactions(result.data);
-      } else {
-        console.error('Error loading transactions:', result.error);
+        
+        if (result.success) {
+          setTransactions(result.data);
+        } else {
+          console.error('Error loading transactions:', result.error);
+        if (result.error === 'User not authenticated' && !isDemoUser) {
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading transactions:', error);

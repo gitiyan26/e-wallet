@@ -51,7 +51,7 @@ export default function ReportsPage() {
           router.push('/login')
           return
         }
-        setUser({ id: 'demo-user-id', email: 'demo@example.com' })
+        setUser({ id: 'demo-user', email: 'demo@example.com' })
       } else {
         setUser(user)
       }
@@ -73,13 +73,41 @@ export default function ReportsPage() {
 
   const loadMonthlyReports = async () => {
     try {
-      const response = await fetch(`/api/reports/monthly?year=${selectedYear}&user_id=${user.id}`)
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          console.warn('No access token available for reports, user might need to re-login');
+          router.push('/login');
+          return;
+        }
+      }
+      
+      const response = await fetch(`/api/reports/monthly?year=${selectedYear}&user_id=${user.id}`, {
+        headers,
+      })
       const data = await response.json()
       
       if (response.ok) {
-        setMonthlyReports(data.reports)
+        if (data.success) {
+          setMonthlyReports(data.data || [])
+        } else {
+          console.error('Failed to fetch monthly reports:', data.error)
+          showNotification('Gagal memuat laporan', 'error')
+        }
       } else {
         showNotification('Gagal memuat laporan', 'error')
+        if (data.error === 'User not authenticated' && !isDemoUser) {
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading monthly reports:', error)
@@ -92,20 +120,41 @@ export default function ReportsPage() {
       const startDate = new Date(selectedYear, selectedMonth - 1, 1)
       const endDate = new Date(selectedYear, selectedMonth, 0)
       
-      // Get session token for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          console.warn('No access token available for monthly transactions, user might need to re-login');
+          router.push('/login');
+          return;
+        }
+      }
       
       const response = await fetch(`/api/transactions?user_id=${user.id}&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`, {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers,
       })
       const data = await response.json()
       
       if (response.ok) {
-        setDailyTransactions(data.transactions || [])
+        if (data.success) {
+          setDailyTransactions(data.data || [])
+        } else {
+          console.error('Failed to fetch monthly transactions:', data.error)
+          showNotification('Gagal memuat transaksi', 'error')
+        }
       } else {
         showNotification('Gagal memuat transaksi', 'error')
+        if (data.error === 'User not authenticated' && !isDemoUser) {
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading monthly transactions:', error)

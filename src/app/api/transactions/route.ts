@@ -60,7 +60,8 @@ export async function GET(request: NextRequest) {
       
       const transactions = await getTransactionsByUserAndDateRange(
         new Date(startDate),
-        new Date(endDate)
+        new Date(endDate),
+        user
       );
       
       return NextResponse.json({
@@ -89,53 +90,42 @@ export async function GET(request: NextRequest) {
     // Try to get user from authorization header first
      const authHeader = request.headers.get('authorization');
      let user = null;
+     let userToken = null;
      
      if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+      userToken = authHeader.substring(7);
+      
       try {
-        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token);
+        const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(userToken);
         if (!tokenError && tokenUser) {
           user = tokenUser;
         }
       } catch (e) {
-        console.log('Token auth failed, trying session auth');
+        console.warn('Token validation failed:', e);
       }
     }
     
-    // Fallback to session-based auth with retry mechanism
+    // If no user from token, try session with retry
     if (!user) {
-      let attempts = 0;
-      const maxAttempts = 3;
-      
-      while (!user && attempts < maxAttempts) {
-        const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-        if (!userError && currentUser) {
-          user = currentUser;
+      for (let i = 0; i < 3; i++) {
+        const { data: { user: sessionUser }, error } = await supabase.auth.getUser();
+        if (sessionUser && !error) {
+          user = sessionUser;
           break;
         }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        if (i < 2) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
     }
     
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const transactions = await getTransactions(filter);
-    
-    return NextResponse.json({
-      success: true,
-      data: transactions,
-      message: 'Transaksi berhasil diambil'
-    });
+    const transactions = await getTransactions(filter, user, userToken);
+       
+      return NextResponse.json({ success: true, data: transactions });
   } catch (error) {
     console.error('Error fetching transactions:', error);
     return NextResponse.json(

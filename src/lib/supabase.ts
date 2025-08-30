@@ -20,20 +20,6 @@ export const signIn = async (email: string, password: string) => {
     password
   })
   
-  // Ensure user profile exists after successful login
-  if (data.user && !error) {
-    try {
-      // Wait a bit for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const { ensureUserProfile } = await import('./database')
-      await ensureUserProfile()
-    } catch (profileError) {
-      console.error('Error ensuring user profile:', profileError)
-      // Don't throw error, let login continue
-    }
-  }
-  
   return { data, error }
 }
 
@@ -48,19 +34,8 @@ export const signUp = async (email: string, password: string, fullName?: string)
     }
   })
   
-  // Ensure user profile exists after successful signup
-  if (data.user && !error) {
-    try {
-      // Wait a bit for the session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const { ensureUserProfile } = await import('./database')
-      await ensureUserProfile()
-    } catch (profileError) {
-      console.error('Error ensuring user profile after signup:', profileError)
-      // Don't throw error, let registration continue
-    }
-  }
+  // Profile will be created automatically by database trigger
+  // No need to manually ensure user profile here
   
   return { data, error }
 }

@@ -49,7 +49,10 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const summary = await getTransactionSummary();
+    // Extract userToken from authorization header
+    const userToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
+    
+    const summary = await getTransactionSummary(user, userToken);
     
     return NextResponse.json({
       success: true,

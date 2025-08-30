@@ -58,13 +58,26 @@ export default function DashboardPage() {
   const loadSummary = async () => {
     setLoadingSummary(true);
     try {
-      // Get session token for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          console.warn('No access token available for summary, user might need to re-login');
+          router.push('/login');
+          return;
+        }
+      }
       
       const response = await fetch('/api/summary', {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers,
       });
       const result = await response.json();
       
@@ -72,6 +85,9 @@ export default function DashboardPage() {
         setSummary(result.data);
       } else {
         console.error('Error loading summary:', result.error);
+        if (result.error === 'User not authenticated' && !isDemoUser) {
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading summary:', error);
@@ -83,13 +99,26 @@ export default function DashboardPage() {
 
   const loadRecentTransactions = async () => {
     try {
-      // Get session token for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          console.warn('No access token available for recent transactions, user might need to re-login');
+          router.push('/login');
+          return;
+        }
+      }
       
       const response = await fetch('/api/transactions?limit=5', {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
+        headers,
       });
       const result = await response.json();
       
@@ -97,6 +126,9 @@ export default function DashboardPage() {
         setRecentTransactions(result.data);
       } else {
         console.error('Error loading recent transactions:', result.error);
+        if (result.error === 'User not authenticated' && !isDemoUser) {
+          router.push('/login');
+        }
       }
     } catch (error) {
       console.error('Error loading recent transactions:', error);
