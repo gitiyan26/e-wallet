@@ -150,9 +150,10 @@ export default function AddTransactionPage() {
       
       if (result.success) {
         showNotification('Transaksi berhasil ditambahkan!', 'success')
-        setTimeout(() => {
-          router.push('/transactions')
-        }, 1500)
+        // Reset form after successful submission
+        setAmount('')
+        setDescription('')
+        setCategory('')
       } else {
         showNotification(result.error || 'Terjadi kesalahan saat menyimpan transaksi', 'error')
       }

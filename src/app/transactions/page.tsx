@@ -22,7 +22,7 @@ export default function TransactionsPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTransactions, setTotalTransactions] = useState(0);
-  const transactionsPerPage = 10;
+  const transactionsPerPage = 5;
   const { notification, showNotification, hideNotification } = useNotification();
   const router = useRouter();
 

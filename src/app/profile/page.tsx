@@ -15,7 +15,13 @@ export default function ProfilePage() {
       const user = await getCurrentUser()
       
       if (!user) {
-        router.push('/login')
+        // Check demo login
+        const demoLoggedIn = localStorage.getItem('demo-logged-in')
+        if (!demoLoggedIn) {
+          router.push('/login')
+          return
+        }
+        setUser({ id: 'demo-user', email: 'demo@example.com', created_at: new Date().toISOString() })
       } else {
         setUser(user)
       }
@@ -26,7 +32,13 @@ export default function ProfilePage() {
   }, [])
 
   const handleLogout = async () => {
-    await signOut()
+    // Check if demo user
+    const demoLoggedIn = localStorage.getItem('demo-logged-in')
+    if (demoLoggedIn) {
+      localStorage.removeItem('demo-logged-in')
+    } else {
+      await signOut()
+    }
     router.push('/login')
   }
 
@@ -89,7 +101,10 @@ export default function ProfilePage() {
         {/* Menu Items */}
         <div className="space-y-3">
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
-            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
+            <button 
+              onClick={() => router.push('/notifications')}
+              className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group"
+            >
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +120,10 @@ export default function ProfilePage() {
           </div>
 
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
-            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
+            <button 
+              onClick={() => router.push('/security')}
+              className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group"
+            >
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +139,10 @@ export default function ProfilePage() {
           </div>
 
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
-            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
+            <button 
+              onClick={() => router.push('/help')}
+              className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group"
+            >
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +158,10 @@ export default function ProfilePage() {
           </div>
 
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-elegant overflow-hidden">
-            <button className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group">
+            <button 
+              onClick={() => router.push('/about')}
+              className="w-full p-5 flex items-center justify-between hover:bg-primary-50 transition-all duration-200 group"
+            >
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center mr-4 group-hover:bg-primary-200 transition-colors">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
