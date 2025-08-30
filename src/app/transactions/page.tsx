@@ -22,6 +22,7 @@ export default function TransactionsPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const transactionsPerPage = 5;
   const { notification, showNotification, hideNotification } = useNotification();
   const router = useRouter();
@@ -35,12 +36,14 @@ export default function TransactionsPage() {
       setCurrentPage(1); // Reset to first page when filters change
       loadTransactions(1);
       loadCategories();
+      calculateSummary();
     }
   }, [user, activeTab, selectedCategory, selectedMonth]);
 
   useEffect(() => {
     if (user) {
       loadTransactions(currentPage);
+      calculateSummary();
     }
   }, [currentPage]);
 
@@ -56,6 +59,74 @@ export default function TransactionsPage() {
     } catch (error) {
       console.error('Error loading categories:', error);
       showNotification('Gagal memuat kategori', 'error');
+    }
+  };
+
+  const calculateSummary = async () => {
+    try {
+      // Check if user is demo user
+      const isDemoUser = user?.id === 'demo-user';
+      
+      let headers: Record<string, string> = {};
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        } else {
+          console.warn('No access token available for summary calculation');
+          return;
+        }
+      }
+      
+      // Build query parameters for filtering
+      const params = new URLSearchParams();
+      if (activeTab !== 'all') {
+        params.append('type', activeTab);
+      }
+      if (selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      
+      // Add month filter
+      if (selectedMonth !== 'all') {
+        const currentYear = new Date().getFullYear();
+        const month = parseInt(selectedMonth);
+        
+        // Create dates in local timezone to avoid timezone issues
+        const startDate = `${currentYear}-${month.toString().padStart(2, '0')}-01`;
+        // Get last day of the selected month
+        const lastDay = new Date(currentYear, month, 0).getDate();
+        const endDate = `${currentYear}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+        
+        params.append('dateFrom', startDate);
+        params.append('dateTo', endDate);
+      }
+      
+      // Get all transactions with current filters (no limit for summary)
+      const response = await fetch(`/api/transactions?${params}&limit=1000`, {
+        headers,
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        const allTransactions = result.data;
+        const totalIncome = allTransactions
+          .filter((t: Transaction) => t.type === 'income')
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+        
+        const totalExpense = allTransactions
+          .filter((t: Transaction) => t.type === 'expense')
+          .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+        
+        const balance = totalIncome - totalExpense;
+        
+        setSummary({ totalIncome, totalExpense, balance });
+      }
+    } catch (error) {
+      console.error('Error calculating summary:', error);
     }
   };
 
@@ -95,12 +166,16 @@ export default function TransactionsPage() {
       // Add month filter
       if (selectedMonth !== 'all') {
         const currentYear = new Date().getFullYear();
-        const monthIndex = parseInt(selectedMonth) - 1; // Convert to 0-based index
-        const startDate = new Date(currentYear, monthIndex, 1);
-        const endDate = new Date(currentYear, monthIndex + 1, 0); // Last day of month
+        const month = parseInt(selectedMonth);
         
-        params.append('dateFrom', startDate.toISOString().split('T')[0]);
-        params.append('dateTo', endDate.toISOString().split('T')[0]);
+        // Create dates in local timezone to avoid timezone issues
+        const startDate = `${currentYear}-${month.toString().padStart(2, '0')}-01`;
+        // Get last day of the selected month
+        const lastDay = new Date(currentYear, month, 0).getDate();
+        const endDate = `${currentYear}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+        
+        params.append('dateFrom', startDate);
+        params.append('dateTo', endDate);
       }
       
       // Add pagination parameters
@@ -222,6 +297,68 @@ export default function TransactionsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="px-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Total Pemasukan */}
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-5 shadow-elegant border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-green-700 mb-1">Total Pemasukan</p>
+                <p className="text-2xl font-bold text-green-800">{formatCurrency(summary.totalIncome)}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-200 rounded-2xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Pengeluaran */}
+          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-5 shadow-elegant border border-red-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-red-700 mb-1">Total Pengeluaran</p>
+                <p className="text-2xl font-bold text-red-800">{formatCurrency(summary.totalExpense)}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-200 rounded-2xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Sisa Saldo */}
+          <div className={`bg-gradient-to-br rounded-2xl p-5 shadow-elegant border ${
+            summary.balance >= 0 
+              ? 'from-blue-50 to-blue-100 border-blue-200' 
+              : 'from-orange-50 to-orange-100 border-orange-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`text-sm font-semibold mb-1 ${
+                  summary.balance >= 0 ? 'text-blue-700' : 'text-orange-700'
+                }`}>Sisa Saldo</p>
+                <p className={`text-2xl font-bold ${
+                  summary.balance >= 0 ? 'text-blue-800' : 'text-orange-800'
+                }`}>{formatCurrency(summary.balance)}</p>
+              </div>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                summary.balance >= 0 ? 'bg-blue-200' : 'bg-orange-200'
+              }`}>
+                <svg className={`w-6 h-6 ${
+                  summary.balance >= 0 ? 'text-blue-600' : 'text-orange-600'
+                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>
