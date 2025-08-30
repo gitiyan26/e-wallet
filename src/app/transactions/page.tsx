@@ -16,7 +16,7 @@ export default function TransactionsPage() {
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [categories, setCategories] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -301,6 +301,57 @@ export default function TransactionsPage() {
         </div>
       </div>
 
+
+
+      {/* Add Transaction Button */}
+      <div className="p-6">
+        <Link
+          href="/add-transaction"
+          className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 px-6 rounded-2xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Tambah Transaksi
+        </Link>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="px-6 mb-8">
+        <div className="flex space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-md">
+          <button 
+            onClick={() => setActiveTab('all')}
+            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
+              activeTab === 'all' 
+                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
+                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+            }`}
+          >
+            Semua
+          </button>
+          <button 
+            onClick={() => setActiveTab('income')}
+            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
+              activeTab === 'income' 
+                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
+                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+            }`}
+          >
+            Pemasukan
+          </button>
+          <button 
+            onClick={() => setActiveTab('expense')}
+            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
+              activeTab === 'expense' 
+                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
+                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+            }`}
+          >
+            Pengeluaran
+          </button>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="px-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -360,55 +411,6 @@ export default function TransactionsPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Add Transaction Button */}
-      <div className="p-6">
-        <Link
-          href="/add-transaction"
-          className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 px-6 rounded-2xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Tambah Transaksi
-        </Link>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="px-6 mb-8">
-        <div className="flex space-x-2 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-md">
-          <button 
-            onClick={() => setActiveTab('all')}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
-              activeTab === 'all' 
-                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
-                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
-            }`}
-          >
-            Semua
-          </button>
-          <button 
-            onClick={() => setActiveTab('income')}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
-              activeTab === 'income' 
-                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
-                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
-            }`}
-          >
-            Pemasukan
-          </button>
-          <button 
-            onClick={() => setActiveTab('expense')}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
-              activeTab === 'expense' 
-                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg transform scale-105' 
-                : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
-            }`}
-          >
-            Pengeluaran
-          </button>
         </div>
       </div>
 
