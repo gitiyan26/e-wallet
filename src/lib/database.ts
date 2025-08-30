@@ -56,16 +56,33 @@ export const initializeDatabase = async () => {
 };
 
 // Transaction operations
-export const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>): Promise<Transaction> => {
+export const addTransaction = async (transactionData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>, userToken?: string): Promise<Transaction> => {
   try {
+    let supabaseClient = supabase;
+    
+    // If userToken is provided, create a new client with the token
+    if (userToken) {
+      const { createClient } = await import('@supabase/supabase-js');
+      supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      
+      // Set the session with the provided token
+      await supabaseClient.auth.setSession({
+        access_token: userToken,
+        refresh_token: '' // We don't have refresh token in this context
+      });
+    }
+    
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       throw new Error('User not authenticated');
     }
 
     // Get categories to find category_id
-    const { data: categories, error: categoriesError } = await supabase
+    const { data: categories, error: categoriesError } = await supabaseClient
       .from('categories')
       .select('*')
       .eq('name', transactionData.category)
@@ -77,7 +94,7 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
     }
 
     // Insert transaction
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('transactions')
       .insert({
         user_id: user.id,
@@ -95,7 +112,7 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
     }
 
     // Get all categories for conversion
-    const { data: allCategories } = await supabase
+    const { data: allCategories } = await supabaseClient
       .from('categories')
       .select('*');
 
@@ -108,10 +125,28 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
 
 export const getTransactions = async (filter?: TransactionFilter): Promise<Transaction[]> => {
   try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      throw new Error('User not authenticated');
+    // Get current user with retry mechanism
+    let user = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (!user && attempts < maxAttempts) {
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (!userError && currentUser) {
+        user = currentUser;
+        break;
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    if (!user) {
+      // Return empty array if user not authenticated
+      return [];
     }
 
     // Build query
@@ -269,10 +304,28 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
 // Summary operations
 export const getTransactionSummary = async (): Promise<TransactionSummary> => {
   try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      throw new Error('User not authenticated');
+    // Get current user with retry mechanism
+    let user = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (!user && attempts < maxAttempts) {
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (!userError && currentUser) {
+        user = currentUser;
+        break;
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    if (!user) {
+      // Return empty array if user not authenticated
+      return [];
     }
 
     const { data: transactions, error } = await supabase
@@ -311,9 +364,26 @@ export const getTransactionSummary = async (): Promise<TransactionSummary> => {
 
 export const getTransactionsByUserAndDateRange = async (startDate: Date, endDate: Date): Promise<Transaction[]> => {
   try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    // Get current user with retry mechanism
+    let user = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (!user && attempts < maxAttempts) {
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (!userError && currentUser) {
+        user = currentUser;
+        break;
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    if (!user) {
       throw new Error('User not authenticated');
     }
 

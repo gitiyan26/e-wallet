@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser } from '@/lib/supabase';
+import { getCurrentUser, supabase } from '@/lib/supabase';
 import { getUserData } from '@/lib/database';
 import BottomNavigation from '@/components/BottomNavigation';
 import { TransactionSummary, Transaction } from '@/types';
@@ -58,7 +58,14 @@ export default function DashboardPage() {
   const loadSummary = async () => {
     setLoadingSummary(true);
     try {
-      const response = await fetch('/api/summary');
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/summary', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -76,7 +83,14 @@ export default function DashboardPage() {
 
   const loadRecentTransactions = async () => {
     try {
-      const response = await fetch('/api/transactions?limit=5');
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('/api/transactions?limit=5', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+      });
       const result = await response.json();
       
       if (result.success) {

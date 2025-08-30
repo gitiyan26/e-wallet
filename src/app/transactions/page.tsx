@@ -95,7 +95,14 @@ export default function TransactionsPage() {
       
       params.append('limit', '50');
       
-      const response = await fetch(`/api/transactions?${params}`);
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(`/api/transactions?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+      });
       const result = await response.json();
       
       if (result.success) {

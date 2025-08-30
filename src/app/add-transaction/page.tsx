@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getCurrentUser } from '@/lib/supabase'
+import { getCurrentUser, supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getCategoriesByType } from '@/lib/database'
@@ -110,11 +110,33 @@ export default function AddTransactionPage() {
     }
 
     try {
+      // Check if this is a demo user
+      const isDemoUser = user.id === 'demo-user'
+      console.log('Is demo user:', isDemoUser)
+      
+      let headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (!isDemoUser) {
+        // Get session token for authorization for real users
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('Session available:', !!session)
+        console.log('Access token available:', !!session?.access_token)
+        
+        // Only add Authorization header if we have a valid token
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`
+        } else {
+          showNotification('Sesi login telah berakhir. Silakan login kembali.', 'error')
+          router.push('/login')
+          return
+        }
+      }
+      
       const response = await fetch('/api/transactions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           type,
           amount: parseFloat(amount),

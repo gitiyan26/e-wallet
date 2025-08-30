@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getCurrentUser } from '@/lib/supabase'
+import { getCurrentUser, supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BottomNavigation from '@/components/BottomNavigation'
@@ -92,7 +92,14 @@ export default function ReportsPage() {
       const startDate = new Date(selectedYear, selectedMonth - 1, 1)
       const endDate = new Date(selectedYear, selectedMonth, 0)
       
-      const response = await fetch(`/api/transactions?user_id=${user.id}&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`)
+      // Get session token for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(`/api/transactions?user_id=${user.id}&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`, {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+      })
       const data = await response.json()
       
       if (response.ok) {
