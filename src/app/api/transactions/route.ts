@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
         amount: body.amount,
         description: body.description,
         category: body.category,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0], // Format YYYY-MM-DD dengan timezone lokal
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       amount: parseFloat(amount),
       category,
       description: description || '',
-      date: new Date().toISOString()
+      date: new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0] // Format YYYY-MM-DD dengan timezone lokal
     };
     
     // For real users, handle authentication
