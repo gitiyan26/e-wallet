@@ -124,7 +124,7 @@ export const addTransaction = async (transactionData: Omit<Transaction, 'id' | '
   }
 };
 
-export const getTransactions = async (filter?: TransactionFilter, authenticatedUser?: any, userToken?: string): Promise<Transaction[]> => {
+export const getTransactions = async (filter?: TransactionFilter, authenticatedUser?: any, userToken?: string): Promise<{ transactions: Transaction[], total: number }> => {
   try {
     let user = authenticatedUser;
     let supabaseClient = supabase;
@@ -151,7 +151,7 @@ export const getTransactions = async (filter?: TransactionFilter, authenticatedU
     
     if (!user) {
       // Return empty array if user not authenticated
-      return [];
+      return { transactions: [], total: 0 };
     }
 
     // Create a new client with the user token for RLS
@@ -204,6 +204,16 @@ export const getTransactions = async (filter?: TransactionFilter, authenticatedU
     // Order by date (newest first)
     query = query.order('date', { ascending: false });
 
+    // Get total count first (without limit/offset)
+    const { count: totalCount, error: countError } = await supabaseClient
+      .from('transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (countError) {
+      throw countError;
+    }
+
     // Apply limit and offset
     if (filter?.limit) {
       const offset = filter.offset || 0;
@@ -228,7 +238,10 @@ export const getTransactions = async (filter?: TransactionFilter, authenticatedU
       convertedTransactions = convertedTransactions.filter(t => t.category === filter.category);
     }
 
-    return convertedTransactions;
+    return {
+      transactions: convertedTransactions,
+      total: totalCount || 0
+    };
   } catch (error) {
     console.error('Error getting transactions:', error);
     return [];

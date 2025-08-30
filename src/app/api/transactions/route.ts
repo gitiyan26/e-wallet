@@ -123,9 +123,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const transactions = await getTransactions(filter, user, userToken);
+    const result = await getTransactions(filter, user, userToken);
        
-      return NextResponse.json({ success: true, data: transactions });
+      return NextResponse.json({ 
+        success: true, 
+        data: result.transactions,
+        total: result.total 
+      });
   } catch (error) {
     console.error('Error fetching transactions:', error);
     return NextResponse.json(

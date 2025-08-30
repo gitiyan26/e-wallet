@@ -138,14 +138,14 @@ export default function ReportsPage() {
         }
       }
       
-      const response = await fetch(`/api/transactions?user_id=${user.id}&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`, {
+      const response = await fetch(`/api/transactions?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`, {
         headers,
       })
       const data = await response.json()
       
       if (response.ok) {
         if (data.success) {
-          setDailyTransactions(data.data || [])
+          setDailyTransactions(data.transactions || [])
         } else {
           console.error('Failed to fetch monthly transactions:', data.error)
           showNotification('Gagal memuat transaksi', 'error')

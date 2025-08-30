@@ -16,6 +16,9 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<TransactionSummary | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const transactionsPerPage = 5;
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
   const { shouldShowMigration, setShouldShowMigration, markMigrationComplete } = useMigrationCheck();
@@ -27,9 +30,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       loadSummary();
-      loadRecentTransactions();
+      loadRecentTransactions(currentPage);
     }
-  }, [user]);
+  }, [user, currentPage]);
 
   const checkUser = async () => {
     try {
@@ -97,7 +100,7 @@ export default function DashboardPage() {
     }
   };
 
-  const loadRecentTransactions = async () => {
+  const loadRecentTransactions = async (page = 1) => {
     try {
       // Check if user is demo user
       const isDemoUser = user?.id === 'demo-user';
@@ -117,13 +120,15 @@ export default function DashboardPage() {
         }
       }
       
-      const response = await fetch('/api/transactions?limit=5', {
+      const offset = (page - 1) * transactionsPerPage;
+      const response = await fetch(`/api/transactions?limit=${transactionsPerPage}&offset=${offset}`, {
         headers,
       });
       const result = await response.json();
       
       if (result.success) {
         setRecentTransactions(result.data);
+        setTotalTransactions(result.total);
       } else {
         console.error('Error loading recent transactions:', result.error);
         if (result.error === 'User not authenticated' && !isDemoUser) {
@@ -254,33 +259,64 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-500">Mulai catat keuangan Anda sekarang</p>
           </div>
         ) : (
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl overflow-hidden shadow-elegant">
-            {recentTransactions.map((transaction, index) => (
-              <div key={transaction.id} className={`p-5 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-100/50' : ''} hover:bg-gray-50/50 transition-colors`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 mb-1">{transaction.description}</p>
-                    <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {transaction.category}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {formatDate(transaction.date)}
-                      </span>
+          <>
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl overflow-hidden shadow-elegant">
+              {recentTransactions.map((transaction, index) => (
+                <div key={transaction.id} className={`p-5 ${index !== recentTransactions.length - 1 ? 'border-b border-gray-100/50' : ''} hover:bg-gray-50/50 transition-colors`}>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 mb-1">{transaction.description}</p>
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {transaction.category}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatDate(transaction.date)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right ml-4">
+                      <p className={`font-bold text-lg ${
+                        transaction.type === 'income' ? 'text-success-600' : 'text-error-600'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right ml-4">
-                    <p className={`font-bold text-lg ${
-                      transaction.type === 'income' ? 'text-success-600' : 'text-error-600'
-                    }`}>
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCurrency(transaction.amount)}
-                    </p>
-                  </div>
                 </div>
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {totalTransactions > transactionsPerPage && (
+              <div className="flex justify-center items-center mt-4 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg bg-white/95 backdrop-blur-md border border-gray-200/50 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <span className="px-4 py-2 bg-white/95 backdrop-blur-md rounded-lg border border-gray-200/50 text-sm font-medium text-gray-700">
+                  {currentPage} / {Math.ceil(totalTransactions / transactionsPerPage)}
+                </span>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalTransactions / transactionsPerPage)))}
+                  disabled={currentPage >= Math.ceil(totalTransactions / transactionsPerPage)}
+                  className="px-3 py-2 rounded-lg bg-white/95 backdrop-blur-md border border-gray-200/50 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
 

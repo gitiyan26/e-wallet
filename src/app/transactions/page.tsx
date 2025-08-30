@@ -20,6 +20,9 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const transactionsPerPage = 10;
   const { notification, showNotification, hideNotification } = useNotification();
   const router = useRouter();
 
@@ -29,10 +32,17 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     if (user) {
-      loadTransactions();
+      setCurrentPage(1); // Reset to first page when filters change
+      loadTransactions(1);
       loadCategories();
     }
   }, [user, activeTab, selectedCategory, selectedMonth]);
+
+  useEffect(() => {
+    if (user) {
+      loadTransactions(currentPage);
+    }
+  }, [currentPage]);
 
   const loadCategories = async () => {
     try {
@@ -71,7 +81,7 @@ export default function TransactionsPage() {
     }
   };
 
-  const loadTransactions = async () => {
+  const loadTransactions = async (page: number = 1) => {
     setLoadingTransactions(true);
     try {
       const params = new URLSearchParams();
@@ -93,7 +103,10 @@ export default function TransactionsPage() {
         params.append('dateTo', endDate.toISOString().split('T')[0]);
       }
       
-      params.append('limit', '50');
+      // Add pagination parameters
+      const offset = (page - 1) * transactionsPerPage;
+      params.append('limit', transactionsPerPage.toString());
+      params.append('offset', offset.toString());
       
       // Check if user is demo user
       const isDemoUser = user?.id === 'demo-user';
@@ -120,6 +133,7 @@ export default function TransactionsPage() {
         
         if (result.success) {
           setTransactions(result.data);
+          setTotalTransactions(result.total || 0);
         } else {
           console.error('Error loading transactions:', result.error);
         if (result.error === 'User not authenticated' && !isDemoUser) {
@@ -383,6 +397,61 @@ export default function TransactionsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {transactions.length > 0 && totalTransactions > transactionsPerPage && (
+          <div className="mt-8 flex justify-center items-center space-x-4">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white/95 backdrop-blur-md rounded-xl font-semibold text-gray-700 shadow-elegant hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+            >
+              ← Sebelumnya
+            </button>
+            
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: Math.ceil(totalTransactions / transactionsPerPage) }, (_, i) => i + 1)
+                .filter(page => {
+                  const totalPages = Math.ceil(totalTransactions / transactionsPerPage);
+                  if (totalPages <= 5) return true;
+                  if (page === 1 || page === totalPages) return true;
+                  if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                  return false;
+                })
+                .map((page, index, array) => {
+                  const prevPage = array[index - 1];
+                  const showEllipsis = prevPage && page - prevPage > 1;
+                  
+                  return (
+                    <div key={page} className="flex items-center space-x-2">
+                      {showEllipsis && (
+                        <span className="px-2 py-1 text-gray-500">...</span>
+                      )}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+                          currentPage === page
+                            ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
+                            : 'bg-white/95 backdrop-blur-md text-gray-700 shadow-elegant hover:shadow-xl'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </div>
+                  );
+                })
+              }
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(totalTransactions / transactionsPerPage)))}
+              disabled={currentPage === Math.ceil(totalTransactions / transactionsPerPage)}
+              className="px-4 py-2 bg-white/95 backdrop-blur-md rounded-xl font-semibold text-gray-700 shadow-elegant hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+            >
+              Selanjutnya →
+            </button>
           </div>
         )}
       </div>
