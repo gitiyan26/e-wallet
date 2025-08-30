@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser } from '@/lib/supabase';
+import { getUserData } from '@/lib/database';
 import BottomNavigation from '@/components/BottomNavigation';
 import { TransactionSummary, Transaction } from '@/types';
 import Notification, { useNotification } from '@/components/Notification';
@@ -32,17 +33,19 @@ export default function DashboardPage() {
 
   const checkUser = async () => {
     try {
-      const user = await getCurrentUser();
-      if (!user) {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
         // Check demo login
         const demoLoggedIn = localStorage.getItem('demo-logged-in');
         if (!demoLoggedIn) {
           router.push('/login');
           return;
         }
-        setUser({ id: 'demo-user', email: 'demo@example.com' });
+        setUser({ id: 'demo-user', email: 'demo@example.com', full_name: 'Demo User' });
       } else {
-        setUser(user);
+        // Get full user data including profile
+        const userData = await getUserData();
+        setUser(userData || currentUser);
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -119,7 +122,7 @@ export default function DashboardPage() {
       <div className="bg-white/95 backdrop-blur-md shadow-elegant">
         <div className="px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Selamat datang, {user?.email?.split('@')[0]}</p>
+          <p className="text-gray-600">Selamat datang, {user?.full_name || user?.email?.split('@')[0] || 'Pengguna'}</p>
         </div>
       </div>
 

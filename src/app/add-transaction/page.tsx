@@ -25,7 +25,7 @@ export default function AddTransactionPage() {
   const expenseCategories = ['Makanan', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Kesehatan', 'Lainnya']
 
   useEffect(() => {
-    const getUser = async () => {
+    const initializePage = async () => {
       const user = await getCurrentUser()
       
       if (!user) {
@@ -40,10 +40,11 @@ export default function AddTransactionPage() {
         setUser(user)
       }
       setLoading(false)
+      
+      await loadCategories()
     }
 
-    getUser()
-    loadCategories()
+    initializePage()
     
     // Check URL params for transaction type
     const urlParams = new URLSearchParams(window.location.search)
@@ -54,7 +55,10 @@ export default function AddTransactionPage() {
   }, [])
 
   useEffect(() => {
-    loadCategories()
+    const loadCategoriesAsync = async () => {
+      await loadCategories()
+    }
+    loadCategoriesAsync()
   }, [type])
 
   // Close dropdown when clicking outside
@@ -75,12 +79,17 @@ export default function AddTransactionPage() {
     }
   }, [showCategoryDropdown])
 
-  const loadCategories = () => {
-    const cats = getCategoriesByType(type)
-    setCategories(cats)
-    // Reset category when type changes
-    if (category && !cats.find(c => c.name === category)) {
-      setCategory('')
+  const loadCategories = async () => {
+    try {
+      const cats = await getCategoriesByType(type)
+      setCategories(cats || [])
+      // Reset category when type changes
+      if (category && !cats?.find(c => c.name === category)) {
+        setCategory('')
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error)
+      setCategories([])
     }
   }
 

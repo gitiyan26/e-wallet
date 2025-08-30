@@ -452,18 +452,76 @@ export const getUserData = async (): Promise<User | null> => {
       .single();
 
     if (error || !data) {
-      return null;
+      // Profile doesn't exist, create it
+      await ensureUserProfile();
+      
+      // Try to get the profile again
+      const { data: newData, error: newError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (newError || !newData) {
+        return null;
+      }
+      
+      return {
+        id: newData.id,
+        email: newData.email,
+        full_name: newData.full_name,
+        avatar_url: newData.avatar_url,
+        created_at: newData.created_at,
+        updated_at: newData.updated_at
+      };
     }
 
     return {
       id: data.id,
       email: data.email,
       full_name: data.full_name,
-      avatar_url: data.avatar_url
+      avatar_url: data.avatar_url,
+      created_at: data.created_at,
+      updated_at: data.updated_at
     };
   } catch (error) {
     console.error('Error getting user data:', error);
     return null;
+  }
+};
+
+// Function to ensure user profile exists
+export const ensureUserProfile = async (): Promise<void> => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Check if profile exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (!existingProfile) {
+      // Create profile
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null
+        });
+
+      if (insertError) {
+        console.error('Error creating user profile:', insertError);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring user profile:', error);
   }
 };
 

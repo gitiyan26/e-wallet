@@ -11,9 +11,9 @@ export async function GET(request: NextRequest) {
     let categories;
     
     if (type && ['income', 'expense'].includes(type)) {
-      categories = getCategoriesByType(type);
+      categories = await getCategoriesByType(type);
     } else {
-      categories = getCategories();
+      categories = await getCategories();
     }
     
     return NextResponse.json({
